@@ -20,3 +20,89 @@ The raw dataset contained 1,224 shipment rows. Removing 24 exact duplicate rows 
 
 The dataset used in this project is synthetic and was generated for the capstone exercise. It does not contain real Delhivery shipment records, and this project is not affiliated with Delhivery.
 
+
+## Part B — Delivery-Hours Regression
+
+### Data splitting and scaling
+
+The modelling dataset was split into:
+- Training: 840 rows (70%)
+- Validation: 180 rows (15%)
+- Test: 180 rows (15%)
+
+StandardScaler was fitted only on the training data to prevent data leakage.
+The maximum absolute mean of the scaled training features was approximately
+0.0000000000000004, while the test value was 0.2187.
+
+### Model comparison
+
+Five approaches were evaluated on the validation set:
+
+| Model | Validation RMSE (hours) | Validation R² |
+|---|---:|---:|
+| Mean baseline | 18.8552 | -0.0212 |
+| Linear Regression | 4.8912 | 0.9313 |
+| Decision Tree (depth 6) | 6.2796 | 0.8867 |
+| Random Forest | 5.4784 | 0.9138 |
+| Gradient Boosting | 4.9165 | 0.9306 |
+
+The mean baseline's negative R² indicates that predicting the training-set
+mean performed slightly worse than predicting the validation-set mean.
+
+Linear Regression was selected as the final model because it achieved the
+lowest validation RMSE (4.8912 hours).
+
+### Decision Tree depth analysis
+
+A depth of 6 achieved the lowest validation RMSE of 6.2796 hours.
+
+A depth-1 tree showed underfitting: its training RMSE was 11.6334 and
+validation RMSE was 12.1324.
+
+The unlimited-depth tree showed overfitting: its training RMSE was 0.0000,
+but its validation RMSE increased to 7.7890. It memorized the training
+data without generalizing as well to unseen data.
+
+### Gradient Boosting learning-rate experiment
+
+| Learning rate | Validation RMSE | Validation R² |
+|---:|---:|---:|
+| 0.01 | 10.0018 | 0.7127 |
+| 0.1 | 4.9165 | 0.9306 |
+| 1.0 | 7.3701 | 0.8440 |
+
+A learning rate of 0.1 performed best. A rate of 0.01 learned too slowly
+with 100 estimators, while 1.0 was too aggressive and performed worse.
+
+### Five-fold cross-validation
+
+Cross-validation was performed on the combined training and validation
+data using the same shuffled five-fold split configuration.
+
+| Model | Mean R² | Standard deviation |
+|---|---:|---:|
+| Linear Regression | 0.9261 | 0.0048 |
+| Gradient Boosting | 0.9352 | 0.0044 |
+
+Gradient Boosting performed better across the cross-validation folds.
+However, Linear Regression remained the final selection because the
+assignment specifies choosing the candidate with the lowest validation RMSE.
+The difference between the two validation RMSE values was very small.
+
+### Final test evaluation
+
+The selected Linear Regression model was evaluated once on the untouched
+test set.
+
+| Metric | Test result |
+|---|---:|
+| MAE | 3.5671 hours |
+| MSE | 20.4624 |
+| RMSE | 4.5235 hours |
+| R² | 0.9493 |
+
+The final test R² exceeded the assignment's acceptance threshold of 0.88.
+
+Note: The project uses a synthetic shipment dataset. These results
+demonstrate performance on the generated data and should not be interpreted
+as verified real-world Delhivery performance.
