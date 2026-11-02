@@ -106,3 +106,76 @@ The final test R² exceeded the assignment's acceptance threshold of 0.88.
 Note: The project uses a synthetic shipment dataset. These results
 demonstrate performance on the generated data and should not be interpreted
 as verified real-world Delhivery performance.
+
+## Model results (classification)
+
+### Baseline and model comparison
+
+The blind baseline predicted every shipment as on time. It achieved
+76.67% accuracy but had zero precision, recall, and F1-score because
+it failed to identify any delayed shipments.
+
+Among the trained models, Logistic Regression achieved 83.33%
+validation recall, while the default Random Forest achieved 91.11%
+validation accuracy and 84.21% precision.
+
+### Feature analysis
+
+The seven strongest features by ANOVA F-score were distance_km,
+hub_tier, hub_daily_capacity, n_stops, promised_hours, rain_flag,
+and sale_event_flag.
+
+All five deliberately added noise features had F-scores below 10
+and ranked outside the top seven. Their combined Random Forest
+importance was approximately 0.2253.
+
+### Feature selection
+
+Selecting seven features achieved the highest validation F1-score
+of 0.8333. This was better than selecting 5, 10, 12, or all 17
+features.
+
+### Hyperparameter tuning
+
+Grid Search evaluated 27 combinations using five-fold
+cross-validation, while Randomized Search evaluated 9 combinations.
+Grid Search achieved higher cross-validation accuracy than
+Randomized Search.
+
+However, neither tuned model outperformed the default Random Forest
+on validation F1. The default forest achieved 0.8333, compared with
+0.7750 for Grid Search and 0.7901 for Randomized Search.
+
+This demonstrates that hyperparameter tuning does not guarantee
+better validation performance. The validation set contains only
+180 shipments, so the results should also be interpreted with care.
+
+### Alert threshold
+
+The selected alert threshold was 0.5, the highest tested threshold
+that maintained validation recall of at least 0.80. At this
+threshold, validation precision was 0.7955 and recall was 0.8333.
+
+Increasing the threshold to 0.6 improved precision to 0.8889,
+but reduced recall to 0.7619, below the required target.
+
+### Final test results
+
+At the selected threshold of 0.5, the final test results were:
+
+- Accuracy: 86.67%
+- Precision: 68.89%
+- Recall: 75.61%
+- F1-score: 72.09%
+
+The model correctly identified 31 of the 41 delayed shipments and
+missed 10. It generated 14 false delay alerts.
+
+Test recall was lower than validation recall (75.61% compared with
+83.33%). The test set contained only 41 delayed shipments, so each
+missed delayed shipment represents approximately 2.44 percentage
+points of recall. The difference is reported rather than hidden.
+
+The final configuration used seven selected features, 100 Random
+Forest trees, unlimited tree depth, a minimum leaf size of one,
+and an alert threshold of 0.5.
