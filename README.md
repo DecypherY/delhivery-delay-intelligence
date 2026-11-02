@@ -21,7 +21,7 @@ The raw dataset contained 1,224 shipment rows. Removing 24 exact duplicate rows 
 The dataset used in this project is synthetic and was generated for the capstone exercise. It does not contain real Delhivery shipment records, and this project is not affiliated with Delhivery.
 
 
-## Part B — Delivery-Hours Regression
+## Model results (regression)
 
 ### Data splitting and scaling
 
@@ -179,3 +179,95 @@ points of recall. The difference is reported rather than hidden.
 The final configuration used seven selected features, 100 Random
 Forest trees, unlimited tree depth, a minimum leaf size of one,
 and an alert threshold of 0.5.
+
+## How to run
+
+### Requirements
+- Python 3.13 or later
+- Git
+- Input CSV files in `data/`
+
+### Setup
+
+```bash
+git clone https://github.com/yashvx/delhivery-delay-intelligence.git
+cd delhivery-delay-intelligence
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Run the complete pipeline
+
+Run these commands in order:
+
+```bash
+python generate_data.py
+python test_prep.py
+python part_a_clean_eda.py
+python part_b_regression.py
+python validate_part_b.py
+python part_c_classification.py
+python validate_part_c.py
+python part_d_segments.py
+python package_model.py
+python predict_delay.py
+python validate_part_d.py
+```
+
+## Operations recommendation
+
+| Segment | Hubs | Mean delivery hours | Delay rate |
+|---|---:|---:|---:|
+| Standard | 7 | 47.24 | 2.57% |
+| Watch | 8 | 56.81 | 15.50% |
+| Escalate | 9 | 64.65 | 46.00% |
+
+- **Standard:** Continue routine monitoring.
+- **Watch:** Monitor dispatch performance and contact customers proactively when flagged.
+- **Escalate:** Prioritise investigation and escalate flagged shipments to hub managers.
+
+Four hubs differ from their expected tier-based segment: HUB07 (Kolkata), HUB13 (Nagpur), HUB15 (Kochi), and HUB22 (Dehradun). These warrant operational investigation.
+
+The selected classification threshold is 0.5. Final test results:
+
+- Accuracy: 86.67%
+- Precision: 68.89%
+- Recall: 75.61%
+- F1: 72.09%
+- True positives: 31
+- False positives: 14
+- False negatives: 10
+
+For 48 new shipments, 8 were flagged: 6 for hub-manager escalation and 2 for proactive customer calls. The remaining 40 received no action.
+
+K=3 was selected for hub segmentation. K=4 and K=5 had higher separation ratios but produced clusters with fewer than six hubs, making operational playbooks less practical.
+
+## Production plan
+
+A production version should include:
+
+1. Scheduled shipment data ingestion.
+2. Data validation before scoring.
+3. Monitoring of delay rates, flagged shipment share and model recall.
+4. Human review of high-risk predictions.
+5. Model versioning and recorded evaluation results.
+6. Periodic retraining using newly labelled shipment outcomes.
+
+Suggested monitoring triggers:
+
+- Delay rate above 30% or five percentage points above its recent baseline.
+- Flagged shipment share above 25%.
+- Recall below 75% on a sufficiently large labelled evaluation set.
+- Missing required features or hub mappings should stop scoring.
+
+These are proposed monitoring thresholds, not measured production results.
+
+## Limitations
+
+- The dataset is generated and does not represent verified real-world Delhivery performance.
+- The classification test set contains only 41 delayed shipments.
+- The threshold was selected using one validation split.
+- The 48 new shipments do not have known outcomes for verification.
+- Hub segments may change as operational conditions change.
+- This is a local batch-processing prototype, not a live production system.
